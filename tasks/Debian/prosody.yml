@@ -86,6 +86,14 @@
   command: prosodyctl register jvb auth.{{ jitsi_meet_server_name }} {{ jitsi_meet_videobridge_password }}  # noqa: 301
   changed_when: false
 
+- name: Generate logrotate config.
+  template:
+    src: logrotate.d/prosody.j2
+    dest: /etc/logrotate.d/prosody
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Enable prosody
   service:
     name: prosody

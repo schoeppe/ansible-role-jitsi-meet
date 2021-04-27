@@ -1,0 +1,57 @@
+---
+- name: Converge
+  hosts: all
+  become: True
+  vars:
+    apache_remove_default_vhost: true
+    apache_mods_enabled:
+      - rewrite.load
+      - ssl.load
+      - headers.load
+      - proxy.load
+    apache_vhosts:
+      - servername: jitsi-meet.local
+        user: www-data
+        group: www-data
+        documentroot: /usr/share/jitsi-meet
+        log_directory: /srv/www/logs
+        ssl_enabled: true
+        certificate_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
+        certificate_key_file: /etc/ssl/private/ssl-cert-snakeoil.key
+        additional_settings: |
+          <Directory "/usr/share/jitsi-meet">
+              Options Indexes MultiViews Includes FollowSymLinks
+              AddOutputFilter Includes html
+              AllowOverride All
+              Order allow,deny
+              Allow from all
+          </Directory>
+
+          ErrorDocument 404 /static/404.html
+
+          Alias "/config.js" "/etc/jitsi/meet/jitsi-meet.example.com-config.js"
+          <Location /config.js>
+              Require all granted
+          </Location>
+
+          Alias "/external_api.js" "/usr/share/jitsi-meet/libs/external_api.min.js"
+          <Location /external_api.js>
+              Require all granted
+          </Location>
+
+          ProxyPreserveHost on
+          ProxyPass /http-bind http://localhost:5280/http-bind
+          ProxyPassReverse /http-bind http://localhost:5280/http-bind
+          ProxyPass /xmpp-websocket ws://localhost:5280/xmpp-websocket
+          ProxyPassReverse /xmpp-websocket ws://localhost:5280/xmpp-websocket
+          ProxyPass /colibri-ws/default-id ws://localhost:9090/colibri-ws/default-id
+          ProxyPassReverse /colibri-ws/default-id ws://localhost:9090/colibri-ws/default-id
+
+          RewriteEngine on
+          RewriteRule ^/([a-zA-Z0-9]+)$ /index.html
+    jitsi_meet_nginx_setup: false
+    jitsi_meet_base_secret: my_very_own_secret
+    jitsi_meet_server_name: jitsi-meet.local
+  roles:
+    - role: schoeppe.apache
+    - role: schoeppe.jitsi-meet

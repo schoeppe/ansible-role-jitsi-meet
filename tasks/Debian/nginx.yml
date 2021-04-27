@@ -68,6 +68,14 @@
     state: link
   notify: reload nginx
 
+- name: Generate logrotate config.
+  template:
+    src: logrotate.d/nginx.j2
+    dest: /etc/logrotate.d/nginx
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Enable nginx
   service:
     name: nginx

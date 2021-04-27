@@ -1,0 +1,29 @@
+---
+
+- name: Collect information about installed packages.
+  package_facts:
+    manager: auto
+
+- name: Make sure requesites for key management are installed.
+  apt:
+    name:
+      - gpg
+      - dirmngr
+    state: present
+
+- name: Add the Jitsi APT/GPG key.
+  apt_key:
+    url: https://download.jitsi.org/jitsi-key.gpg.key
+    state: present
+
+- name: Add the Jitsi APT repository.
+  apt_repository:
+    repo: deb https://download.jitsi.org stable/
+    state: present
+    filename: jitsi-meet
+
+- import_tasks: Debian/jitsi-meet.yml
+- import_tasks: Debian/prosody.yml
+- import_tasks: Debian/ui_customization.yml
+- import_tasks: Debian/nginx.yml
+  when: jitsi_meet_nginx_setup

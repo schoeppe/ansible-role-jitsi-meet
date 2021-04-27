@@ -4,10 +4,11 @@ driver:
   provider:
     name: virtualbox
 platforms:
-  - name: buster64-jitsi-meet
-    box: debian/buster64
   - name: ubuntu2004-jitsi-meet
     box: generic/ubuntu2004
+    interfaces:
+      - network_name: private_network
+        ip: 192.168.247.80
 provisioner:
   name: ansible
   become: True
