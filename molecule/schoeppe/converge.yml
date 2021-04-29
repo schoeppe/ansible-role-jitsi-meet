@@ -3,6 +3,10 @@
   hosts: all
   become: True
   vars:
+    hostsfile_entries:
+      - ip: 127.0.3.1
+        hostname: jitsi-meet.local
+    system_hostname: jitsi-meet.local
     apache_remove_default_vhost: true
     apache_mods_enabled:
       - rewrite.load
@@ -11,14 +15,12 @@
       - proxy.load
     apache_vhosts:
       - servername: jitsi-meet.local
-        user: www-data
-        group: www-data
         documentroot: /usr/share/jitsi-meet
-        log_directory: /srv/www/logs
+        log_directory: /var/log/jitsi
         ssl_enabled: true
         certificate_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
         certificate_key_file: /etc/ssl/private/ssl-cert-snakeoil.key
-        additional_settings: |
+        extra_parameters: |
           <Directory "/usr/share/jitsi-meet">
               Options Indexes MultiViews Includes FollowSymLinks
               AddOutputFilter Includes html
@@ -29,7 +31,7 @@
 
           ErrorDocument 404 /static/404.html
 
-          Alias "/config.js" "/etc/jitsi/meet/jitsi-meet.example.com-config.js"
+          Alias "/config.js" "/etc/jitsi/meet/jitsi-meet.local-config.js"
           <Location /config.js>
               Require all granted
           </Location>
@@ -53,5 +55,12 @@
     jitsi_meet_base_secret: my_very_own_secret
     jitsi_meet_server_name: jitsi-meet.local
   roles:
+    - role: schoeppe.system
+    - role: schoeppe.hostsfile
     - role: schoeppe.apache
     - role: schoeppe.jitsi-meet
+  tasks:
+    - file:
+        name: /etc/apache2/sites-enabled/{{ jitsi_meet_server_name }}.conf
+        state: absent
+      notify: restart apache
